@@ -1,5 +1,5 @@
 package dataBase;
 
-public class DbService {
-    
+public class DbService   {
+
 }
