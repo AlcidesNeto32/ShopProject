@@ -13,9 +13,9 @@ public class DbService {
     public void putProduct(Product product) {
         try {
             connection = DbOperations.connection();
-            preparedStatement = connection.prepareStatement("insert into product" +
-                            "(productId,productName,quantity,price)" +
-                            "values" +
+            preparedStatement = connection.prepareStatement("insert into product " +
+                            "(productId,productName,quantity,price) " +
+                            "values " +
                             "(?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setInt(1, product.getId());
@@ -27,30 +27,40 @@ public class DbService {
             if (rows > 0) {
                 System.out.println("Done! " + product + " added with success!");
             } else {
-                System.out.println("Ops!  a error happened");
+                System.out.println("Ops! a error happened");
             }
         } catch (SQLException e) {
             throw new DbException(e.getMessage());
+        } finally {
+            DbOperations.closePreparedStatement(preparedStatement);
+            DbOperations.closeConnection(connection);
         }
     }
 
-    public void showProduct(String name, Integer id){
+    public void showProduct(String name, Integer id) {
         try {
             connection = DbOperations.connection();
-            statement = connection.createStatement();
-            String sqlQuery = "select * from product ";
-            ResultSet resultSet = statement.executeQuery(sqlQuery);
-            while (resultSet.next()){
-                String findName = "";
-                //TODO you need to end the query here ! And search an method better!
-                String n = resultSet.getString("productName");
-                if (n.equals(name) ){
-                    findName = n;
+            preparedStatement = connection.prepareStatement("select * from product " +
+                    "where " +
+                    "productName = ? and productId = ?");
+            preparedStatement.setString(1, name);
+            preparedStatement.setInt(2, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String findName = resultSet.getString("productName");
+                Integer findId = resultSet.getInt("productId");
+                if (findId.equals(null)){
+                    System.out.println("This product does not exist!");
+                    break;
                 }
-                System.out.println(findName);
+                double findPrice  = resultSet.getDouble("price");
+                System.out.println("Product name: " + findName + " \nprice: " + findPrice + "\nid: " + findId);
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             throw new DbException(e.getMessage());
+        } finally {
+            DbOperations.closePreparedStatement(preparedStatement);
+            DbOperations.closeConnection(connection);
         }
     }
 }
